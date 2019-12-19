@@ -191,7 +191,6 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
                           "Proxy-agent: %s\r\n" % self.version_string() +
                           "\r\n").encode('ascii'))
         commonname = '.' + self.host.partition('.')[-1] if self.host.count('.') >= 2 else self.host
-        dummycert = get_cert(commonname)
         # set a flag for do_METHOD
         self.ssltunnel = True
 
@@ -382,8 +381,8 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
 
     def ssl_get_response(self, conn):
         try:
-            # server_conn = ssl.wrap_socket(conn, cert_reqs=ssl.CERT_REQUIRED, ca_certs="cacert.pem", ssl_version=ssl.PROTOCOL_TLSv1)
-            server_conn = ssl.wrap_socket(conn, cert_reqs=ssl.CERT_NONE, ca_certs=None, ssl_version=ssl.PROTOCOL_TLSv1)
+            server_conn = ssl.wrap_socket(conn, cert_reqs=ssl.CERT_REQUIRED, ca_certs="cacert.pem", ssl_version=ssl.PROTOCOL_TLSv1)
+            #server_conn = ssl.wrap_socket(conn, cert_reqs=ssl.CERT_NONE, ca_certs=None, ssl_version=ssl.PROTOCOL_TLSv1)
             server_conn.sendall(('%s %s HTTP/1.1\r\n' % (self.command, self.path)).encode('ascii'))
             server_conn.sendall(self.headers.as_bytes())
             if self.postdata:
@@ -399,8 +398,7 @@ class ProxyRequestHandler(BaseHTTPRequestHandler):
 
     def purge_headers(self, headers):
         "Remove hop-by-hop headers that shouldn't pass through a Proxy"
-        for name in ["Connection", "Keep-Alive", "Upgrade",
-                     "Proxy-Connection", "Proxy-Authenticate"]:
+        for name in [""]:
             del headers[name]
 
     def purge_write_headers(self, headers):
@@ -494,8 +492,8 @@ def demo():
     server.serve_forever()
 
 
-#if __name__ == '__main__':
-#    try:
-#        demo()
-#    except KeyboardInterrupt:
-#        print("Quitting...")
+if __name__ == '__main__':
+    try:
+        demo()
+    except KeyboardInterrupt:
+        print("Quitting...")

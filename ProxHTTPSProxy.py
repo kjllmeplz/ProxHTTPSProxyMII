@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"A Proxomitron Helper Program"
+"A Privoxy Helper Program"
 
 _name = 'ProxHTTPSProxyMII'
 __author__ = 'phoenix'
-__version__ = 'v1.4'
+__version__ = 'v1.5.1'
 
 CONFIG = "config.ini"
 CA_CERTS = "cacert.pem"
@@ -19,7 +19,6 @@ import threading
 import ssl
 import urllib3
 from urllib3.contrib.socks import SOCKSProxyManager
-#https://urllib3.readthedocs.org/en/latest/security.html#insecurerequestwarning
 urllib3.disable_warnings()
 
 from socketserver import ThreadingMixIn
@@ -142,7 +141,7 @@ class FrontRequestHandler(ProxyRequestHandler):
     server_version = "%s FrontProxy/%s" % (_name, __version__)
 
     def do_CONNECT(self):
-        "Descrypt https request and dispatch to http handler"
+        "Decrypt https request and dispatch to http handler"
 
         # request line: CONNECT www.example.com:443 HTTP/1.1
         self.host, self.port = self.path.split(":")
@@ -166,7 +165,7 @@ class FrontRequestHandler(ProxyRequestHandler):
             # Upstream server or proxy of the tunnel is closed explictly, so we close the local connection too
             self.close_connection = 1
         elif any((fnmatch.fnmatch(self.host, pattern) for pattern in pools.sslpassalllist)):
-            # SSL Pass-Thru
+            # SSL Pass-Thru All
             if self.proxy and self.proxy.startswith('https'):
                 self.forward_to_https_proxy()
             elif self.proxy and self.proxy.startswith('socks5'):
@@ -182,7 +181,7 @@ class FrontRequestHandler(ProxyRequestHandler):
             self.wfile.write(("HTTP/1.1 200 Connection established\r\n" +
                               "Proxy-agent: %s\r\n" % self.version_string() +
                               "\r\n").encode('ascii'))
-            commonname = '.' + self.host.partition('.')[-1] if self.host.count('.') >= 2 else self.host
+            commonname = self.host
             dummycert = get_cert(commonname)
             # set a flag for do_METHOD
             self.ssltunnel = True
@@ -413,14 +412,13 @@ try:
           thread.daemon = True
           thread.start()
 
-    print("=" * 76)
+    print("=" * 44)
     print('%s %s (urllib3/%s)' % (_name, __version__, urllib3.__version__))
-    print()
     print('  FrontServer  : localhost:%s' % config.FRONTPORT)
     print('  RearServer   : localhost:%s' % config.REARPORT)
     print('  ParentServer : %s' % config.DEFAULTPROXY)
     print('  Privoxy      : ' + config.PROXADDR)
-    print("=" * 76)
+    print("=" * 44)
     while True:
         time.sleep(1)
 except KeyboardInterrupt:
